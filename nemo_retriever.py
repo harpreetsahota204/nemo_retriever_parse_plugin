@@ -1,10 +1,10 @@
-import fiftyone as fo
-from fiftyone.core.labels import Detections, Detection
 import json
 import requests
-from typing import Dict
-from getpass import getpass
 from tqdm import tqdm
+from typing import Dict
+
+import fiftyone as fo
+from fiftyone.core.labels import Detections, Detection
 
 def create_headers(api_key: str, asset_id: str = None) -> Dict[str, str]:
     """Create headers for NVIDIA API requests
