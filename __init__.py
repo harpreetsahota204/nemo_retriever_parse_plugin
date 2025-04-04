@@ -6,6 +6,10 @@ from fiftyone.operators import types
 
 from .nemo_retriever import run_nemo_retriever_parse
 
+def found_api_key():
+    """Returns whether the current environment allows nvidia models."""
+    return "NVIDIA_API_KEY" in os.environ
+
 def _handle_calling(
         uri, 
         sample_collection, 
@@ -45,14 +49,18 @@ class NemoRetrieverParse(foo.Operator):
         """
         inputs = types.Object()
 
-        inputs.str(
-            "api_key",            
-            required=True,
-            label="Your NVIDIA API Key",
-            description=(
-                "NOTE: You'll need to set up an NVIDIA API key to use this plugin. You can get one by following this link: https://nvda.ws/3LspiUP"
+        form_view = types.View(
+            label="NVIDIA NeMo Retriever Parse",
+            description="Parse Documents with NVIDIA NeMo Retriever Parse. NOTE: You'll need to set up an NVIDIA API key to use this plugin. You can get one by following this link: https://nvda.ws/3LspiUP. Then set it to the environment variable NVIDIA_API_KEY.",
+        )
+
+        api_key_flag = found_api_key()
+        if not api_key_flag:
+            inputs.str(
+                "api_key",            
+                required=True,
+                label="No NVIDIA_API_KEY found in environment, you can pass it directly here",
                 )
-            )
 
         inputs.bool(
             "delegate",
