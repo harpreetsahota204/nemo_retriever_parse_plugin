@@ -1,5 +1,7 @@
 # FiftyOne NeMo Retriever Parse Plugin
 
+<img src="./assets/nemo_app.gif">
+
 A FiftyOne plugin that integrates NVIDIA's NeMo Retriever Parse model to detect and extract text regions from documents with their spatial locations.
 
 
