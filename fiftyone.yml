@@ -1,0 +1,9 @@
+name: "@harpreetsahota/nemo_retriever_parse"
+description: Run NVIDIA NeMo Retriever Parse  on your FiftyOne Dataset
+version: 1.0.1
+fiftyone:
+  version: "*"
+url: https://github.com/harpreetsahota204/nemo_retriever_parse_plugin
+license: Apache 2.0
+operators:
+  - run_nemo_retriever_parse
