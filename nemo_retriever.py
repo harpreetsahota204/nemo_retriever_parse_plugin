@@ -154,7 +154,7 @@ def parse_nemo_response_to_detections(response: Dict) -> Detections:
     
     return Detections(detections=detections)
 
-def run_nemo_parse(dataset: fo.Dataset, api_key: str):
+def run_nemo_retriever_parse(dataset: fo.Dataset, api_key: str):
     """Process dataset with NeMo Retriever Parse and add detections and token usage fields.
     
     This function processes each image in the dataset through the NeMo API and adds
