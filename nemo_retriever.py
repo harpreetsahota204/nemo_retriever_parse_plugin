@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 from tqdm import tqdm
@@ -6,19 +7,43 @@ from typing import Dict
 import fiftyone as fo
 from fiftyone.core.labels import Detections, Detection
 
-def create_headers(api_key: str, asset_id: str = None) -> Dict[str, str]:
+
+def create_headers(api_key: str = None, asset_id: str = None) -> Dict[str, str]:
     """Create headers for NVIDIA API requests
     
     Args:
-        api_key: NVIDIA API authentication key
+        api_key: NVIDIA API authentication key. If None or empty, will try to get from environment
         asset_id: Optional ID of uploaded asset to reference in headers
         
     Returns:
         Dictionary containing required headers for NVIDIA API requests
+        
+    Raises:
+        ValueError: If no valid API key is provided and NVIDIA_API_KEY environment variable is not set
+        
+    Note:
+        The API key can be provided in three ways (in order of precedence):
+        1. Directly as an argument to this function
+        2. Through the NVIDIA_API_KEY environment variable
+        3. Through the NVCF_API_KEY environment variable (legacy support)
     """
+    # Check for valid api_key parameter
+    if not api_key or str(api_key).strip() == "":
+        # Try environment variables in order of preference
+        api_key = os.environ.get("NVIDIA_API_KEY")
+        
+        if not api_key or str(api_key).strip() == "":
+            raise ValueError(
+                "No valid API key found. Please either:\n"
+                "1. Provide api_key parameter directly\n"
+                "2. Set NVIDIA_API_KEY environment variable\n"
+                "Example:\n"
+                "  export NVIDIA_API_KEY='your-api-key'"
+            )
+
     # Set base authentication headers
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {api_key.strip()}",
         "Accept": "application/json"
     }
     
@@ -26,18 +51,18 @@ def create_headers(api_key: str, asset_id: str = None) -> Dict[str, str]:
     if asset_id:
         headers.update({
             "Content-Type": "application/json",
-            "NVCF-INPUT-ASSET-REFERENCES": asset_id,  # Reference the uploaded asset
-            "NVCF-FUNCTION-ASSET-IDS": asset_id       # Specify asset for function call
+            "NVCF-INPUT-ASSET-REFERENCES": asset_id,
+            "NVCF-FUNCTION-ASSET-IDS": asset_id
         })
     return headers
 
-def upload_asset(image_data: bytes, description: str, api_key: str) -> str:
+def upload_asset(image_data: bytes, description: str, api_key: str = None) -> str:
     """Upload image asset to NVIDIA's API
     
     Args:
         image_data: Raw bytes of the image to upload
         description: Text description of the image asset
-        api_key: NVIDIA API authentication key
+        api_key: NVIDIA API authentication key. If None, will try to get from environment
         
     Returns:
         Asset ID string assigned by NVIDIA API
@@ -69,12 +94,12 @@ def upload_asset(image_data: bytes, description: str, api_key: str) -> str:
     
     return str(auth_data["assetId"])
 
-def process_image(image_path: str, api_key: str) -> Dict:
+def process_image(image_path: str, api_key: str = None) -> Dict:
     """Send image to NeMo API and get response
     
     Args:
         image_path: Path to image file on disk
-        api_key: NVIDIA API authentication key
+        api_key: NVIDIA API authentication key. If None, will try to get from environment
         
     Returns:
         JSON response from NeMo API containing detection results
@@ -154,7 +179,7 @@ def parse_nemo_response_to_detections(response: Dict) -> Detections:
     
     return Detections(detections=detections)
 
-def run_nemo_retriever_parse(dataset: fo.Dataset, api_key: str):
+def run_nemo_retriever_parse(dataset: fo.Dataset, api_key: str = None):
     """Process dataset with NeMo Retriever Parse and add detections and token usage fields.
     
     This function processes each image in the dataset through the NeMo API and adds
@@ -162,7 +187,7 @@ def run_nemo_retriever_parse(dataset: fo.Dataset, api_key: str):
     
     Args:
         dataset: FiftyOne dataset to process
-        api_key: NVIDIA API authentication key
+        api_key: NVIDIA API authentication key. If None, will try to get from environment
         
     The following fields will be added to each sample:
         - nemo_detections: Detected regions with bounding boxes and text
